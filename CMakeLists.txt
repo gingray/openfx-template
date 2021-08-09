@@ -29,4 +29,29 @@ FILE(GLOB SUPPORT_SOURCES
         "${OFX_SUPPORT_LIBRARY_DIR}/*.h"
         )
 
-add_executable(TestOpenFX ./src/basic.cpp)
+#add_executable(TestOpenFX ./src/basic.cpp)
+add_library(TestOpenFX SHARED ./src/basic.cpp)
+SET_TARGET_PROPERTIES(TestOpenFX PROPERTIES PREFIX "")
+SET_TARGET_PROPERTIES(TestOpenFX PROPERTIES SUFFIX ".ofx")
+set_target_properties(TestOpenFX PROPERTIES LINK_FLAGS "-fvisibility=hidden -exported_symbols_list,${OFX_SUPPORT_HEADER_DIR}/osxSymbols")
+TARGET_LINK_LIBRARIES(TestOpenFX)
+set(OFX_ARCH "MacOS")
+SET(OFX_ARCH_NAME ${OFX_ARCH} CACHE STRING "OpenFX target OS and architecture")
+
+INSTALL(TARGETS TestOpenFX
+        RUNTIME DESTINATION TestOpenFX.ofx.bundle/Contents/${OFX_ARCH_NAME}
+        LIBRARY DESTINATION TestOpenFX.ofx.bundle/Contents/${OFX_ARCH_NAME}
+        )
+
+INSTALL(FILES Info.plist
+        DESTINATION TestOpenFX.ofx.bundle/Contents
+        )
+
+INSTALL(TARGETS TestOpenFX
+        RUNTIME DESTINATION TestOpenFX.ofx.bundle/Contents/${OFX_ARCH_NAME}
+        LIBRARY DESTINATION TestOpenFX.ofx.bundle/Contents/${OFX_ARCH_NAME}
+        )
+
+INSTALL(FILES TestOpenFX/Info.plist
+        DESTINATION TestOpenFX.ofx.bundle/Contents
+        )
