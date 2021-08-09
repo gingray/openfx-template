@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ofxsImageEffect.h"
+#include "ofxCore.h"
+using namespace OFX;
 
 // the one OFX header we need, it includes the others necessary
 #include "ofxImageEffect.h"
