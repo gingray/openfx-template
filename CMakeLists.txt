@@ -1,15 +1,15 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
-# here is name of project
-PROJECT(TestOpenFx LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.1)
+set(PLUGIN_NAME TestOpenFX)
+project(${PLUGIN_NAME} LANGUAGES C CXX)
 include(FindOpenGL REQUIRED)
 
 set(CMAKE_CXX_STANDARD 11)
-SET(OPENFX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/openfx)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/SupportExt)
-INCLUDE_DIRECTORIES(${OPENFX_PATH}/include)
-INCLUDE_DIRECTORIES(${OPENFX_PATH}/Support/include)
-INCLUDE_DIRECTORIES(${OPENFX_PATH}/Support/Plugins/include)
+set(OPENFX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/openfx)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/SupportExt)
+include_directories(${OPENFX_PATH}/include)
+include_directories(${OPENFX_PATH}/Support/include)
+include_directories(${OPENFX_PATH}/Support/Plugins/include)
 
 set(OFX_SUPPORT_HEADER_DIR "${OPENFX_PATH}/Support/include")
 set(OFX_SUPPORT_LIBRARY_DIR "${OPENFX_PATH}/Support/Library")
@@ -17,7 +17,7 @@ add_compile_options(-Wall -Wextra)
 
 
 
-FILE(GLOB SUPPORT_SOURCES
+file(GLOB SUPPORT_SOURCES
         "${OFX_SUPPORT_HEADER_DIR}/*.h"
         "${OFX_SUPPORT_LIBRARY_DIR}/ofxsCore.cpp"
         "${OFX_SUPPORT_LIBRARY_DIR}/ofxsImageEffect.cpp"
@@ -34,26 +34,26 @@ file(GLOB SOURCES
         "src/basic.h"
         )
 
-add_library(TestOpenFX SHARED ${SOURCES} ${SUPPORT_SOURCES})
+add_library(${PLUGIN_NAME} SHARED ${SOURCES} ${SUPPORT_SOURCES})
 
-SET_TARGET_PROPERTIES(TestOpenFX PROPERTIES PREFIX "")
-SET_TARGET_PROPERTIES(TestOpenFX PROPERTIES SUFFIX ".ofx")
-set_target_properties(TestOpenFX PROPERTIES LINK_FLAGS "-fvisibility=hidden -exported_symbols_list,${OFX_SUPPORT_HEADER_DIR}/osxSymbols")
-TARGET_LINK_LIBRARIES(TestOpenFX)
+set_target_properties(${PLUGIN_NAME} PROPERTIES PREFIX "")
+set_target_properties(${PLUGIN_NAME} PROPERTIES SUFFIX ".ofx")
+set_target_properties(${PLUGIN_NAME} PROPERTIES LINK_FLAGS "-fvisibility=hidden -exported_symbols_list,${OFX_SUPPORT_HEADER_DIR}/osxSymbols")
+target_link_libraries(${PLUGIN_NAME})
 set(OFX_ARCH "MacOS")
-SET(OFX_ARCH_NAME ${OFX_ARCH} CACHE STRING "OpenFX target OS and architecture")
-SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/install)
+set(OFX_ARCH_NAME ${OFX_ARCH} CACHE STRING "OpenFX target OS and architecture")
+set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/install)
 
-INSTALL(TARGETS TestOpenFX
-        RUNTIME DESTINATION .TestOpenFX.ofx.bundle/Contents/${OFX_ARCH_NAME}
-        LIBRARY DESTINATION TestOpenFX.ofx.bundle/Contents/${OFX_ARCH_NAME}
+install(TARGETS ${PLUGIN_NAME}
+        RUNTIME DESTINATION ${PLUGIN_NAME}.ofx.bundle/Contents/${OFX_ARCH_NAME}
+        LIBRARY DESTINATION ${PLUGIN_NAME}.ofx.bundle/Contents/${OFX_ARCH_NAME}
         )
 
-INSTALL(FILES Info.plist
-        DESTINATION TestOpenFX.ofx.bundle/Contents
+install(FILES Info.plist
+        DESTINATION ${PLUGIN_NAME}.ofx.bundle/Contents
         )
 
-INSTALL(TARGETS TestOpenFX
-        RUNTIME DESTINATION TestOpenFX.ofx.bundle/Contents/${OFX_ARCH_NAME}
-        LIBRARY DESTINATION TestOpenFX.ofx.bundle/Contents/${OFX_ARCH_NAME}
+install(TARGETS ${PLUGIN_NAME}
+        RUNTIME DESTINATION ${PLUGIN_NAME}.ofx.bundle/Contents/${OFX_ARCH_NAME}
+        LIBRARY DESTINATION ${PLUGIN_NAME}.ofx.bundle/Contents/${OFX_ARCH_NAME}
         )
