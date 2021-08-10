@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 # here is name of project
-PROJECT(TestOpenFx CXX)
+PROJECT(TestOpenFx LANGUAGES C CXX)
 include(FindOpenGL REQUIRED)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -13,6 +13,8 @@ INCLUDE_DIRECTORIES(${OPENFX_PATH}/Support/Plugins/include)
 
 set(OFX_SUPPORT_HEADER_DIR "${OPENFX_PATH}/Support/include")
 set(OFX_SUPPORT_LIBRARY_DIR "${OPENFX_PATH}/Support/Library")
+add_compile_options(-Wall -Wextra)
+
 
 
 FILE(GLOB SUPPORT_SOURCES
@@ -27,8 +29,13 @@ FILE(GLOB SUPPORT_SOURCES
         "${OFX_SUPPORT_LIBRARY_DIR}/ofxsPropertyValidation.cpp"
         "${OFX_SUPPORT_LIBRARY_DIR}/*.h"
         )
+file(GLOB SOURCES
+        "src/basic.cpp"
+        "src/basic.h"
+        )
 
-add_library(TestOpenFX SHARED ./src/basic.cpp)
+add_library(TestOpenFX SHARED ${SOURCES} ${SUPPORT_SOURCES})
+
 SET_TARGET_PROPERTIES(TestOpenFX PROPERTIES PREFIX "")
 SET_TARGET_PROPERTIES(TestOpenFX PROPERTIES SUFFIX ".ofx")
 set_target_properties(TestOpenFX PROPERTIES LINK_FLAGS "-fvisibility=hidden -exported_symbols_list,${OFX_SUPPORT_HEADER_DIR}/osxSymbols")
