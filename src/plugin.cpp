@@ -1,6 +1,7 @@
 #include "plugin.h"
 #include "common_ofx.h"
 #include "ofxsCopier.h"
+#include <iostream>
 
 static std::string ofxHostName;
 static std::string ofxPath;
@@ -16,34 +17,39 @@ TestOFXPlugin::TestOFXPlugin(OfxImageEffectHandle handle) : ImageEffect(handle),
 }
 
 void TestOFXPlugin::render(const RenderArguments &args) {
-    if (!_dstClip) {
-        throwSuiteStatusException(kOfxStatFailed);
-        return;
+    std::auto_ptr<Image> dst(_dstClip->fetchImage(args.time));
+
+    if (!dst.get()) {
+        OFX::throwSuiteStatusException(kOfxStatFailed);
     }
-    const double time = args.time;
-    double srcTime = time;
 
-
-    auto_ptr<Image> dst( _dstClip->fetchImage(args.time) );
-    if ( !dst.get() ) {
-        throwSuiteStatusException(kOfxStatFailed);
+    OFX::BitDepthEnum dstBitDepth       = dst->getPixelDepth();
+    OFX::PixelComponentEnum dstComponents  = dst->getPixelComponents();
+    if (dstBitDepth != eBitDepthUByte && dstComponents != ePixelComponentRGB) {
+        OFX::throwSuiteStatusException(kOfxStatErrUnsupported);
     }
-    checkBadRenderScaleOrField(dst, args);
 
-    auto_ptr<const Image> src( (_srcClip && _srcClip->isConnected() ) ? _srcClip->fetchImage(srcTime) : 0 );
-    if ( src.get() ) {
-        checkBadRenderScaleOrField(src, args);
-        BitDepthEnum dstBitDepth       = dst->getPixelDepth();
-        PixelComponentEnum dstComponents  = dst->getPixelComponents();
-        BitDepthEnum srcBitDepth      = src->getPixelDepth();
-        PixelComponentEnum srcComponents = src->getPixelComponents();
-        if ( (srcBitDepth != dstBitDepth) || (srcComponents != dstComponents) ) {
-            throwSuiteStatusException(kOfxStatErrImageFormat);
+    std::auto_ptr<Image> src(_srcClip->fetchImage(args.time));
+
+    if (src.get()) {
+        OFX::BitDepthEnum    srcBitDepth      = src->getPixelDepth();
+        OFX::PixelComponentEnum srcComponents = src->getPixelComponents();
+
+        // see if they have the same depths and bytes and all
+        if (srcBitDepth != dstBitDepth || srcComponents != dstComponents) {
+            OFX::throwSuiteStatusException(kOfxStatErrImageFormat);
         }
     }
-
-
-    copyPixels( *this, args.renderWindow, args.renderScale, src.get(), dst.get() );
+    auto procWindow = args.renderWindow;
+    for(int y=procWindow.y1; y < procWindow.y2;y++) {
+        for(int x=procWindow.x1; x < procWindow.x2;x++) {
+            unsigned char * srcPix = (unsigned char *) src->getPixelAddress(x, y);
+            unsigned char * dstPix = (unsigned char *) dst->getPixelAddress(x, y);
+            dstPix[0] = 10;
+            dstPix[1] = 20;
+            dstPix[2] = 10;
+        }
+    }
 }
 
 void TestOFXPlugin::changedParam(const InstanceChangedArgs &args, const std::string &paramName) {}
@@ -60,7 +66,6 @@ void TextOFXPluginFactory::describe(ImageEffectDescriptor &desc) {
     desc.addSupportedContext(eContextGeneral);
     desc.addSupportedContext(eContextGenerator);
     desc.addSupportedBitDepth(eBitDepthUByte);
-    desc.addSupportedBitDepth(eBitDepthFloat);
     desc.setSupportsTiles(0);
     desc.setSupportsMultiResolution(0);
     desc.setRenderThreadSafety(eRenderFullySafe);
@@ -74,12 +79,12 @@ void TextOFXPluginFactory::describeInContext(ImageEffectDescriptor &desc,
 
     // there has to be an input clip, even for generators
     ClipDescriptor *srcClip = desc.defineClip(kOfxImageEffectSimpleSourceClipName);
-    srcClip->setOptional(true);
+    srcClip->addSupportedComponent(ePixelComponentRGB);
 
     // create the mandated output clip
     ClipDescriptor *dstClip = desc.defineClip(kOfxImageEffectOutputClipName);
-    dstClip->addSupportedComponent(ePixelComponentRGBA);
-    dstClip->setSupportsTiles(0);
+    srcClip->addSupportedComponent(ePixelComponentRGB);
+    dstClip->setSupportsTiles(false);
     PageParamDescriptor *page = desc.definePageParam("Controls");
     {
         IntParamDescriptor *param = desc.defineIntParam(kParamFrameSpeed);
