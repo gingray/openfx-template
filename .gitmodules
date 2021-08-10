@@ -1,3 +1,6 @@
 [submodule "openfx"]
 	path = openfx
 	url = git@github.com:NatronGitHub/openfx
+[submodule "openfx-supportext"]
+	path = openfx-supportext
+	url = git@github.com:NatronGitHub/openfx-supportext.git

@@ -5,13 +5,19 @@ include(FindOpenGL REQUIRED)
 
 set(CMAKE_CXX_STANDARD 11)
 set(OPENFX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/openfx)
+set(OPENFX_SUPPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/openfx-supportext)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/SupportExt)
 include_directories(${OPENFX_PATH}/include)
 include_directories(${OPENFX_PATH}/Support/include)
 include_directories(${OPENFX_PATH}/Support/Plugins/include)
+include_directories(${OPENFX_SUPPORT_PATH})
+
 
 set(OFX_SUPPORT_HEADER_DIR "${OPENFX_PATH}/Support/include")
+set(OFX_SUPPORT_EXT_HEADER_DIR "${OPENFX_SUPPORT_PATH}")
+
 set(OFX_SUPPORT_LIBRARY_DIR "${OPENFX_PATH}/Support/Library")
 add_compile_options(-Wall -Wextra)
 
@@ -28,13 +34,16 @@ file(GLOB SUPPORT_SOURCES
         "${OFX_SUPPORT_LIBRARY_DIR}/ofxsProperty.cpp"
         "${OFX_SUPPORT_LIBRARY_DIR}/ofxsPropertyValidation.cpp"
         "${OFX_SUPPORT_LIBRARY_DIR}/*.h"
+        "${OFX_SUPPORT_EXT_HEADER_DIR}/*.h"
         )
 file(GLOB SOURCES
-        "src/basic.cpp"
-        "src/basic.h"
+        "src/plugin.cpp"
+        "src/plugin.h"
+        "src/const.h"
+        "src/common_ofx.h"
         )
-
-add_library(${PLUGIN_NAME} SHARED ${SOURCES} ${SUPPORT_SOURCES})
+#important to add support sources or linker can't do the job
+add_library(${PLUGIN_NAME} SHARED ${SOURCES} ${SUPPORT_SOURCES} src/const.h src/common_ofx.h)
 
 set_target_properties(${PLUGIN_NAME} PROPERTIES PREFIX "")
 set_target_properties(${PLUGIN_NAME} PROPERTIES SUFFIX ".ofx")
